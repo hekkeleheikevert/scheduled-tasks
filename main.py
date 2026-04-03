@@ -5,8 +5,8 @@ import pandas
 import smtplib
 import os
 
-MY_MAIL = os.environ.get("MY_MAIL")
-MY_PSW = os.environ.get("MY_PSW")
+MY_EMAIL = os.environ.get("MY_MAIL")
+MY_PASSWORD = os.environ.get("MY_PSW")
 
 today = dt.datetime.now()
 today_date = (today.month, today.day)
@@ -22,8 +22,8 @@ if today_date in birthday_dict:
         new_wish = contents.replace("[NAME]", birthday_boy["name"])
     with smtplib.SMTP("smtp.gmail.com", 587) as connection:
         connection.starttls()
-        connection.login(user=MY_MAIL, password=MY_PSW)
-        connection.sendmail(from_addr=MY_MAIL,
+        connection.login(user=MY_EMAIL, password=MY_PASSWORD)
+        connection.sendmail(from_addr=MY_EMAIL,
                             to_addrs=birthday_boy["email"],
                             msg=f"Subject:Happy Birthday {birthday_boy["name"]}\n\n{new_wish}")
 
