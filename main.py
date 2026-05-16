@@ -1,29 +1,35 @@
-
-import datetime as dt
-import random
-import pandas
-import smtplib
+import requests
+from twilio.rest import Client
 import os
 
-MY_EMAIL = os.environ.get("MY_EMAIL")
-MY_PASSWORD = os.environ.get("MY_PASSWORD")
+OWM = "https://api.openweathermap.org/data/2.5/forecast"
+api_key = os.environ.get("OWM_API_KEY")
+SID = os.environ.get("ACCOUNT_SID")
+token = os.environ.get("AUTH_TOKEN")
 
-today = dt.datetime.now()
-today_date = (today.month, today.day)
+parameters = {"lat": 44.954941,
+              "lon": 13.955520,
+              "appid": api_key,
+              "cnt": 4,
+              "units": "metric"}
 
-data = pandas.read_csv("birthdays.csv")
-birthday_dict = {(data_row.month, data_row.day): data_row for (index, data_row) in data.iterrows()}
+response = requests.get(url=OWM, params=parameters)
+response.raise_for_status()
+data = response.json()
+print(data)
 
-if today_date in birthday_dict:
-    birthday_boy = birthday_dict[today_date]
-    path = f"letter_templates/letter_{random.randint(1, 3)}.txt"
-    with open(path) as letter:
-        contents = letter.read()
-        new_wish = contents.replace("[NAME]", birthday_boy["name"])
-    with smtplib.SMTP("smtp.gmail.com", 587) as connection:
-        connection.starttls()
-        connection.login(user=MY_EMAIL, password=MY_PASSWORD)
-        connection.sendmail(from_addr=MY_EMAIL,
-                            to_addrs=birthday_boy["email"],
-                            msg=f"Subject:Happy Birthday {birthday_boy["name"]}\n\n{new_wish}")
+will_rain = False
+for hor_id in data["list"]:
+    weather_id = hor_id["weather"][0]["id"]
+    if weather_id <= 700:
+        print(weather_id)
+        will_rain = True
+if will_rain:
+    client = Client(SID, token)
+    message = client.messages.create(
+        from_="whatsapp:+14155238886",
+        body="JangaraMongara ! It will be raining today !",
+        to="whatsapp:+385976494484"
+    )
+    print(message.status)
 
